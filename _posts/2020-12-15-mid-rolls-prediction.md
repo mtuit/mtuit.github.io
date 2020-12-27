@@ -71,10 +71,12 @@ It seems to work decent. But if we try to apply this to different videos it will
 
 On the x-axis we see the frame number and on the y-axis we see the corresponding HSV differences. For example, if $f_{100}$ has a average HSV value of 50, and $f_{99}$ has a average HSV value of 70, then HSV difference at $f_{100}$ is 20. More formally, the delta (difference) in HSV for a frame can be computed using the following formula: 
 
+<p align="center">
 $\begin{equation}
 \label{eq:dhue}
 \Delta \text{hue}(f, d) = \Big\lvert\text{hue}(f)-\frac{\sum_{i = 1}^{d}\text{hue}(f-i)}{d}\Big\rvert
 \end{equation}$
+</p>
 
 The black dotted lines are the ground truth values, ie. a frame which is a good position for a mid-roll. However, not all suitable positions are captured by the ground truth. This means that it's possible to have more suitable positions than just the ground truth. 
 
