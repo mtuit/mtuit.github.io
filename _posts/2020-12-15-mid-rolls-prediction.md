@@ -65,9 +65,11 @@ INSERT EXAMPLE HERE
 
 It seems to work decent. But if we try to apply this to different videos it will fail and it will become clear that this approach does not generalize well. In order to improve to model we have to find out why. Let's take a look on the values which are computed by the Content-Aware Detector: 
 
-![Content-Aware Detector Values](..\assets\img\mid-rolls\hsv_differences_divorce.png)
+<p align="center">
+  <img width="80%" height="80%" src="..\assets\img\mid-rolls\hsv_differences_divorce.png">
+</p>
 
-On the x-axis we see the frame number and on the y-axis we see the corresponding HSV differences. For example, if `$f_100$` has a average HSV value of 50, and frame 99 has a average HSV value of 70, then HSV difference at frame 100 is 20. 
+On the x-axis we see the frame number and on the y-axis we see the corresponding HSV differences. For example, if $f_{100}$ has a average HSV value of 50, and $f_{99}$ has a average HSV value of 70, then HSV difference at $f_{100}$ is 20. 
 
 The model uses a threshold on values which are extracted based on the content. This means that the threshold (which is a constant line) is dependent on the values. These values highly fluctuate between different content (logical, since every content contains different kind of scenes/locations/backgrounds/etc.). For the threshold to have a similar behaviour for different content, it would need to adjust itself based on the content. You could try by setting the threshold to a high value and iteratively lower it to gradually find more scenes. This, however, introduces a new hyperparameter, the number of scenes you want to detect (similar to the *k* parameter in clustering) before terminating the iterative process. You could estimate the number of scenes based on the length of the content or something similar, and we can continue this rabbithole. In the end, this approach is inherently hard to generalize. But... what if instead of using a threshold based selection way, we look at the problem in a different light? 
 
