@@ -63,17 +63,41 @@ Right on! Let's find ourselves a video, throw it into the package, receive the t
 
 INSERT EXAMPLE HERE
 
-It seems to work decent. But if we try to apply this to different videos it will fail and it will become clear that this approach does not generalize well. In order to improve to model we have to find out why. Let's take a look on the values which are computed by the Content-Aware Detector: 
+It seems to work decent. But if we try to apply this to different videos it will fail and it will become clear that this approach does not generalize well. In order to improve to model we have to find out why. Let's take a look at the values which are computed by the Content-Aware Detector: 
 
 <p align="center">
-  <img width="80%" height="80%" src="..\assets\img\mid-rolls\hsv_differences_divorce.png">
+  <img width="80%" height="80%" src="..\assets\img\mid-rolls\hsv_difference_divorce.png">
 </p>
 
-On the x-axis we see the frame number and on the y-axis we see the corresponding HSV differences. For example, if $f_{100}$ has a average HSV value of 50, and $f_{99}$ has a average HSV value of 70, then HSV difference at $f_{100}$ is 20. 
+On the x-axis we see the frame number and on the y-axis we see the corresponding HSV differences. For example, if $f_{100}$ has a average HSV value of 50, and $f_{99}$ has a average HSV value of 70, then HSV difference at $f_{100}$ is 20. More formally, the delta (difference) in HSV for a frame can be computed using the following formula: 
 
-The model uses a threshold on values which are extracted based on the content. This means that the threshold (which is a constant line) is dependent on the values. These values highly fluctuate between different content (logical, since every content contains different kind of scenes/locations/backgrounds/etc.). For the threshold to have a similar behaviour for different content, it would need to adjust itself based on the content. You could try by setting the threshold to a high value and iteratively lower it to gradually find more scenes. This, however, introduces a new hyperparameter, the number of scenes you want to detect (similar to the *k* parameter in clustering) before terminating the iterative process. You could estimate the number of scenes based on the length of the content or something similar, and we can continue this rabbithole. In the end, this approach is inherently hard to generalize. But... what if instead of using a threshold based selection way, we look at the problem in a different light? 
+$\begin{equation}
+\label{eq:dhue}
+\Delta \text{hue}(f, d) = \Big\lvert\text{hue}(f)-\frac{\sum_{i = 1}^{d}\text{hue}(f-i)}{d}\Big\rvert
+\end{equation}$
+
+The black dotted lines are the ground truth values, ie. a frame which is a good position for a mid-roll. However, not all suitable positions are captured by the ground truth. This means that it's possible to have more suitable positions than just the ground truth. 
+
+The model uses a threshold on values which are extracted based on the content. This means that the threshold (which is a constant line) is dependent on the values. These values highly fluctuate between different content (logical, since every content contains different kind of scenes/locations/backgrounds/etc.). Let's take a look how this looks in our running example: 
+
+<p align="center">
+  <img width="80%" height="80%" src="..\assets\img\mid-rolls\divorce_baseline.png">
+</p>
+
+For the threshold to have a similar behaviour for different content, it would need to adjust itself based on the content. You could try by setting the threshold to a high value and iteratively lower it to gradually find more scenes. This, however, introduces a new hyperparameter, the number of scenes you want to detect (similar to the *k* parameter in clustering) before terminating the iterative process. You could estimate the number of scenes based on the length of the content or something similar, and we can continue this rabbithole. In the end, this approach is inherently hard to generalize. But... what if instead of using a threshold based selection way, we look at the problem in a different light? 
 
 ## Improved Scene Change Detection 
-After consulting with my colleagues about the shortcomings and issues they nodged me into a different direction. This led me to think about the values as a [signal](https://en.wikipedia.org/wiki/Signal_processing). Thinking about it this way also led me to use [scipy's signal package](https://docs.scipy.org/doc/scipy/reference/signal.html), more specifically the [`scipy.signal.find_peaks()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html#scipy.signal.find_peaks) function. From the official documentation, this functions "find peaks inside a signal based on peak properties". A peak in our use case means that a scene change and thus a good position for a mid-roll. 
+After consulting with my colleagues about the shortcomings and issues they nodged me into a different direction. This led me to think about the values as a [signal](https://en.wikipedia.org/wiki/Signal_processing). Thinking about it this way also led me to use [scipy's signal package](https://docs.scipy.org/doc/scipy/reference/signal.html), more specifically the [`scipy.signal.find_peaks()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html#scipy.signal.find_peaks) function. From the official documentation, this functions "find peaks inside a signal based on peak properties". A peak in our use case means that a scene change and thus a good position for a mid-roll. How would that look in our running example? 
 
-![HSV Differences Divorce](..\assets\img\mid-rolls\hsv_differences_divorce.png)
+<p align="center">
+  <img width="80%" height="80%" src="..\assets\img\mid-rolls\peaks1.png">
+</p>
+
+We can clearly see two peaks in our example. But, we could also say that the next maximum value is also a peak... And the next maximum value is also a peak, take a look at this: 
+
+<p align="center">
+  <img width="49%" height="100%" src="..\assets\img\mid-rolls\peaks2.png">
+  <img width="49%" height="100%" src="..\assets\img\mid-rolls\peaks3.png">
+</p>
+
+So where do we draw the line, what percentage of peaks do we keep? To define this we can use the `prominence` parameter of the function. 
