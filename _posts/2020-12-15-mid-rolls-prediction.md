@@ -76,7 +76,6 @@ On the x-axis we see the frame number and on the y-axis we see the corresponding
 
 <p align="center">
 $\begin{equation}
-\label{eq:dhue}
 \Delta \text{hue}(f, d) = \Big\lvert\text{hue}(f)-\frac{\sum_{i = 1}^{d}\text{hue}(f-i)}{d}\Big\rvert
 \end{equation}$
 </p>
@@ -85,7 +84,6 @@ Where $f$ is the frame number and $d$ is the number of frames you want to take i
 
 <p align="center">
 $\begin{equation}
-\label{eq:dhue}
 \Delta \text{hue}(f) = \Big\lvert\text{hue}(f)-\text{hue}(f-1)\Big\rvert
 \end{equation}$
 </p>
